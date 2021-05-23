@@ -1,0 +1,1 @@
+import{siteUI as i}from"./ui.js";import{XR as r}from"./webXR.js";i.init("ar",r),navigator.xr&&r.init("ar",i);
