@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {
     MeshSurfaceSampler
 } from "three/examples/jsm/math/MeshSurfaceSampler.js";
+import gsap from "gsap";
 
 function WebXR() { };
 
@@ -22,36 +23,36 @@ XR.init = function(XRtype) {
     this.session;
     this.currentSession = null;
     this.controller;
-    this.previousDistance;
-    this.viewerPosition = new THREE.Vector3();
-    this.objectTappable = false;
-    this.isHiding = true;
-    this.isFinding = false;
-    this.startedFinding = false;
+    // ThreeJS
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, window.innerHeight / window.innerWidth, 1, 200);
+    // Positioning
+    this.viewerPosition = new THREE.Vector3();
+    this.previousDistance;
+    this.isClose;
+    this.isTouching;
+    this.showObject = true;
+    // State management
+    this.isHiding = true;
+    this.isReadyFinding = false;
+    this.isStartedFinding = false;
+    this.isFound = false;
     // XR UI
     this.body = document.querySelector('body');
     this.overlay = document.querySelector('.js-ar-overlay');
     this.closeXRbtn = document.querySelector('.js-close-webxr');
+    this.hideUI = document.querySelector('.js-hide-ui');
+    this.findUI = document.querySelector('.js-find-ui');
+    this.foundUI = document.querySelector('.js-found-ui');
     this.hideBtn = document.querySelector('.js-hide-obj');
     this.findBtn = document.querySelector('.js-find-obj');
+    this.timerUI = document.querySelector('.js-find-timer');
+    this.playAgainBtn = document.querySelector('.js-play-again');
     this.timer;
 
     this.doughnutGenerator();
 
-    var objectLightMain = new THREE.PointLight( '#fff', 10, 1, 2 );
-    this.scene.add(objectLightMain);
-    this.hiddenObj.add(objectLightMain);
-    objectLightMain.position.set(0.5, -0.5, 0.5);
-
-    var objectLightFill = new THREE.PointLight( '#fff', 5, 2, 2 );
-    this.scene.add(objectLightFill);
-    this.hiddenObj.add(objectLightFill);
-    objectLightFill.position.set(-1, 1, 1);
-
-    var ambientLight = new THREE.AmbientLight( '#fff', 0.45 )
-    this.scene.add( ambientLight );
+    this.lighting();
 
     this.renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -85,35 +86,30 @@ XR.init = function(XRtype) {
 
     }
 
-    this.closeXRbtn.addEventListener('click', e => {
-        this.currentSession.end();
-    });
-
-    this.hideBtn.addEventListener('click', e => {
-        XR.hideObject();
-    });
-
-    this.findBtn.addEventListener('click', e => {
-        XR.findObject();
-    });
+    this.setupUI();
 }
 
 XR.doughnutGenerator = function() {
 
+    // Create doughnut
     const doughnutObjGeo = new THREE.TorusGeometry( 0.065, 0.04, 16, 100 );
     const doughnutObjMat = new THREE.MeshToonMaterial({
-        color: '#D99D4F'
+        color: '#D99D4F',
+        transparent: true
     });
     var doughnutObj = new THREE.Mesh( doughnutObjGeo, doughnutObjMat );
     
+    // Create icing (second smaller doughnut slightly shifted)
     const icingObjGeo = new THREE.TorusGeometry( 0.063, 0.041, 16, 100 );
     icingObjGeo.scale(1, 1, 0.7);
     icingObjGeo.translate(0, 0, 0.012);
     const icingObjMat = new THREE.MeshToonMaterial({
-        color: '#07b0f2'
+        color: '#07b0f2',
+        transparent: true
     });
     var icingObj = new THREE.Mesh( icingObjGeo, icingObjMat );
 
+    // Create sprinkles
     this.sprinkles = new THREE.Group();
     var sprinkColours = ['#81C928', '#27cdf2', '#bf3f34', '#f58000', '#f2b705', '#F21F49', '#DC1FF2'];
 
@@ -125,7 +121,8 @@ XR.doughnutGenerator = function() {
     for ( let i = 0; i < 380; i ++ ) {
         var sprinkleGeo = new THREE.SphereGeometry( 0.0025, 12, 12 );
         var sprinkleMat =  new THREE.MeshToonMaterial({
-            color: sprinkColours[Math.floor(Math.random() * sprinkColours.length)]
+            color: sprinkColours[Math.floor(Math.random() * sprinkColours.length)],
+            transparent: true
         });
         var sprinkle = new THREE.Mesh(sprinkleGeo, sprinkleMat);
 
@@ -144,6 +141,21 @@ XR.doughnutGenerator = function() {
     this.hiddenObjOpacity = 1;
 
     this.scene.add( this.hiddenObj );
+}
+
+XR.lighting = function() {
+    var objectLightMain = new THREE.PointLight( '#fff', 10, 1, 2 );
+    this.scene.add(objectLightMain);
+    this.hiddenObj.add(objectLightMain);
+    objectLightMain.position.set(0.5, -0.5, 0.5);
+
+    var objectLightFill = new THREE.PointLight( '#fff', 5, 2, 2 );
+    this.scene.add(objectLightFill);
+    this.hiddenObj.add(objectLightFill);
+    objectLightFill.position.set(-1, 1, 1);
+
+    var ambientLight = new THREE.AmbientLight( '#fff', 0.45 )
+    this.scene.add( ambientLight );
 }
 
 XR.startXRSession = function() {
@@ -189,7 +201,7 @@ XR.onSessionStarted = async function(session) {
         document.querySelector('body').classList.add('has-ar');
     }
 
-    XR.initControllers();
+    // XR.initControllers();
 
     XR.setHiding();
 }
@@ -199,20 +211,7 @@ XR.onSessionEnded = async function() {
     XR.currentSession.removeEventListener('end', XR.onSessionEnded);
     XR.currentSession = null;
 
-    XR.isHiding = false;
-    XR.isFinding = false;
-    XR.startedFinding = false;
-    XR.stopTimer();
-
-    document.querySelector('body').classList.remove('has-xr', 'has-ar', 'has-vr', 'is-hiding', 'is-finding', 'started-finding');
-    XR.overlay.classList.remove('is-warmer', 'is-colder');
-
-    XR.hiddenObj.traverse( function( node ) {
-        if( node.material ) {
-            node.material.opacity = 1;
-            XR.hiddenObjOpacity = 1;
-        }
-    });
+    document.querySelector('body').classList.remove('has-xr', 'has-ar', 'has-vr');
 
 }
 
@@ -225,67 +224,95 @@ XR.render = function(time, frame) {
 
     XR.camera.getWorldPosition(XR.viewerPosition);
 
-    if (XR.hiddenObj && XR.isHiding) {
-        var dist = 0.5;
-        var cwd = new THREE.Vector3();
-        
-        XR.camera.getWorldDirection(cwd);
-        
-        cwd.multiplyScalar(dist);
-        cwd.add(XR.camera.position);
-        
-        XR.hiddenObj.position.set(cwd.x, cwd.y + 0.08, cwd.z);
-        XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
-        XR.hiddenObj.rotateX(THREE.Math.degToRad( -48 ));
-        XR.hiddenObj.rotateY(THREE.Math.degToRad( -10 ));
-
-    } else if (XR.hiddenObj && !XR.isHiding) {
-
-        if(XR.hiddenObjOpacity > 0.25) {
-            XR.hiddenObj.traverse( function( node ) {
-                if( node.material ) {
-                    node.material.opacity += -0.005;
-                    XR.hiddenObjOpacity += -0.005;
-                    // node.material.transparent = true;
-                }
-            });
-            // XR.hiddenObj.material.opacity += -0.005;
-        }
-
-    }
-
-    if (XR.hiddenObj && XR.isFinding && XR.startedFinding) {
-        // XR.hitTestResults = frame.getHitTestResults(XR.hitTestSource);
-        var distance = XR.viewerPosition.distanceTo(XR.hiddenObj.position);
-        var absDist = Math.abs(XR.previousDistance - distance);
-        
-        if(absDist > 0.02) {
-            if(distance > XR.previousDistance) {
-                // console.log('%c colder', 'color: #00f');
-                XR.overlay.classList.remove('is-warmer');
-                XR.overlay.classList.add('is-colder');
-            } else if (distance < XR.previousDistance) {
-                // console.log('%c warmer', 'color: #f00');
-                XR.overlay.classList.remove('is-colder');
-                XR.overlay.classList.add('is-warmer');
-            } 
-
-            if (distance < 0.25) {
-                XR.hiddenObj.opacity = 1;
-                XR.objectTappable = true;
-                // XR.stopTimer();
-            } else {
-                XR.hiddenObj.opacity = 0.75;
-                XR.objectTappable = false;
-            }
+    if( XR.hiddenObj ) {
+        // If hiding or found stick doughnut to front of viewer else leave in last recorded place
+        if (XR.isHiding || XR.isFound) {
+            var dist = 0.5;
+            var cwd = new THREE.Vector3();
+            
+            XR.camera.getWorldDirection(cwd);
+            
+            cwd.multiplyScalar(dist);
+            cwd.add(XR.camera.position);
+            
+            XR.hiddenObj.position.set(cwd.x, cwd.y + 0.08, cwd.z);
+            XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
+            XR.hiddenObj.rotateX(THREE.Math.degToRad( -48 ));
+            XR.hiddenObj.rotateY(THREE.Math.degToRad( -10 ));
     
-            XR.previousDistance = distance;
+        } else if (XR.isReadyFinding && XR.showObject == false) {
+    
+            XR.fadeOutHiddenObj(0.2);
+    
         }
-        
+    
+        if (XR.isStartedFinding ) {
+            var distance = XR.viewerPosition.distanceTo(XR.hiddenObj.position);
+            var absDist = Math.abs(XR.previousDistance - distance);
+            
+            if(absDist > 0.01) {
+                if(distance > XR.previousDistance) {
+                    // console.log('%c colder', 'color: #00f');
+                    XR.overlay.classList.remove('is-warmer');
+                    XR.overlay.classList.add('is-colder');
+                } else if (distance < XR.previousDistance) {
+                    // console.log('%c warmer', 'color: #f00');
+                    XR.overlay.classList.remove('is-colder');
+                    XR.overlay.classList.add('is-warmer');
+                } 
+    
+                XR.previousDistance = distance;
+            }
+            
+            // Fade in if in range
+            if (distance > 0.5) {
+
+                XR.fadeOutHiddenObj(0.2);    
+
+            } else {
+
+                // XR.showObject = true;
+                XR.fadeInHiddenObj(0.2);
+
+            }
+            
+            // Booped!
+            if (distance < 0.25) {
+
+                XR.setFound();
+
+            }
+            
+        }
+
     }
 
     if (XR.renderer.xr.isPresenting) {
         XR.renderer.render(XR.scene, XR.camera);
+    }
+}
+
+XR.fadeOutHiddenObj = function(rate) {
+    if(XR.hiddenObjOpacity > 0) {
+        XR.hiddenObj.traverse( function( node ) {
+            if( node.material ) {
+                node.material.opacity += -rate;
+            }
+        });
+
+        XR.hiddenObjOpacity += -rate;
+    }
+}
+
+XR.fadeInHiddenObj = function(rate) {
+    if(XR.hiddenObjOpacity < 1) {
+        XR.hiddenObj.traverse( function( node ) {
+            if( node.material ) {
+                node.material.opacity += rate;
+            }
+        });
+
+        XR.hiddenObjOpacity += rate;
     }
 }
 
@@ -298,44 +325,127 @@ XR.initControllers = function() {
 
 }
 
+// Overlay UI
+
+XR.setupUI = function() {
+    gsap.set(XR.hideUI, {'display' : 'flex', 'opacity': 1});
+    gsap.set(XR.timerUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.findUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.foundUI, {'display' : 'none', 'opacity': 0});
+
+    XR.initButtons();
+}
+
+XR.initButtons = function() {
+    XR.closeXRbtn.addEventListener('click', e => {
+        XR.currentSession.end();
+        XR.reset();
+    });
+
+    XR.hideBtn.addEventListener('click', e => {
+        XR.hideObject();
+    });
+
+    XR.findBtn.addEventListener('click', e => {
+        XR.findObject();
+    });
+
+    XR.playAgainBtn.addEventListener('click', e => {
+        XR.playAgain();
+    });
+}
+
 XR.setHiding = function() {
+    gsap.set(XR.timerUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.findUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.foundUI, {'display' : 'none', 'opacity': 0});
+    gsap.to(XR.hideUI, {'display' : 'flex', 'opacity': 1});
     XR.isHiding = true;
     XR.isFinding = false;
     XR.body.classList.add('is-hiding');
     XR.body.classList.remove('is-finding');
 }
 
-XR.setFinding = function() {
-    XR.isFinding = true;
+XR.setReadyFinding = function() {
+    gsap.set(XR.hideUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.findBtn, {'display' : 'flex', 'opacity': 1});
+    gsap.to(XR.findUI, {'display' : 'flex', 'opacity': 1});
+    XR.isReadyFinding = true;
     XR.isHiding = false;
-    XR.body.classList.add('is-finding');
+    XR.body.classList.add('is-ready-finding');
     XR.body.classList.remove('is-hiding');
+}
+
+XR.setStartedFinding = function() {
+    XR.startMillTimer();
+    gsap.set(XR.findBtn, {'display' : 'none', 'opacity': 0});
+    gsap.to(XR.timerUI, {'display' : 'flex', 'opacity': 1});
+    XR.isStartedFinding = true;
+    XR.isReadyFinding = false;
+    XR.body.classList.add('is-started-finding');
+    XR.body.classList.remove('is-ready-finding');
+}
+
+XR.setFound = function() {
+    XR.stopTimer();
+    gsap.set(XR.findUI, {'display' : 'none', 'opacity': 0});
+    gsap.to(XR.foundUI, {'display' : 'flex', 'opacity': 1});
+    XR.isFound = true;
+    XR.isStartedFinding = false;
+    XR.body.classList.add('is-found');
+    XR.body.classList.remove('is-started-finding');
+    XR.overlay.classList.remove('is-warmer', 'is-colder');
+}
+
+XR.setWarmer = function() {
+    XR.isWarmer = true;
+    XR.isColder = false;
+    XR.body.classList.add('is-warmer');
+    XR.body.classList.remove('is-colder');
+}
+
+XR.setColder = function() {
+    XR.isColder = true;
+    XR.isWarmer = false;
+    XR.body.classList.add('is-colder');
+    XR.body.classList.remove('is-warmer');
 }
 
 XR.hideObject = function() {
     XR.previousDistance = XR.viewerPosition.distanceTo(XR.hiddenObj.position);
+    XR.showObject = false;
+    XR.setReadyFinding();
 
-    XR.setFinding();
-
-    console.log('Hidden the object: ', XR.previousDistance);
+    console.log('Hidden the object: ');
 }
 
 XR.findObject = function() {
-    XR.startedFinding = true;
+    XR.setStartedFinding();
 
-    XR.body.classList.add('started-finding');
+    console.log('Start finding object: ');
+}
 
-    // XR.startTimer();
-    // XR.startFastTimer();
-    XR.startMillTimer();
+XR.reset = function() {
+    XR.isHiding = false;
+    XR.isReadyFinding = false;
+    XR.isStartedFinding = false;
+    XR.isFound = false;
+    XR.resetTimer();
 
-    console.log('Start finding object: ', XR.previousDistance);
+    document.querySelector('body').classList.remove('is-hiding', 'is-started-finding', 'is-ready-finding', 'is-found');
+    XR.overlay.classList.remove('is-warmer', 'is-colder');
+
+    XR.fadeInHiddenObj(1);
+}
+
+XR.playAgain = function() {
+    XR.reset();
+    XR.setHiding();
 }
 
 XR.startTimer = function() {
-    var minutesEl = document.querySelector('.js-timer-minutes');
-    var secondsEl = document.querySelector('.js-timer-seconds');
-    var centecondsEl = document.querySelector('.js-timer-centeconds');
+    var minutesEl = XR.timerUI.querySelector('.js-find-timer-minutes');
+    var secondsEl = XR.timerUI.querySelector('.js-find-timer-seconds');
     var totalSeconds = 0;
     XR.timer = setInterval(setTime, 1000);
 
@@ -345,45 +455,12 @@ XR.startTimer = function() {
         secondsEl.innerHTML = pad(parseInt(totalSeconds % 60));
         minutesEl.innerHTML = pad(parseInt(totalSeconds / 60));
     }
-
-    function pad(val) {
-        var valString = val + "";
-        if (valString.length < 2) {
-            return "0" + valString;
-        } else {
-            return valString;
-        }
-    }
-}
-
-XR.startFastTimer = function() {
-    var minutesEl = document.querySelector('.js-timer-minutes');
-    var secondsEl = document.querySelector('.js-timer-seconds');
-    var centecondsEl = document.querySelector('.js-timer-centeconds');
-    var deconds = 0;
-    XR.timer = setInterval(setTime, 100);
-
-    function setTime() {
-        ++deconds;
-        centecondsEl.innerHTML = pad(parseInt(deconds % 10));
-        secondsEl.innerHTML = pad(parseInt(deconds / 10 % 60));
-        minutesEl.innerHTML = pad(parseInt(deconds / 10 / 60));
-    }
-
-    function pad(val) {
-        var valString = val + "";
-        if (valString.length < 2) {
-            return "0" + valString;
-        } else {
-            return valString;
-        }
-    }
 }
 
 XR.startMillTimer = function() {
-    var minutesEl = document.querySelector('.js-timer-minutes');
-    var secondsEl = document.querySelector('.js-timer-seconds');
-    var centecondsEl = document.querySelector('.js-timer-centeconds');
+    var minutesEl = XR.timerUI.querySelector('.js-find-timer-minutes');
+    var secondsEl = XR.timerUI.querySelector('.js-find-timer-seconds');
+    var centecondsEl = XR.timerUI.querySelector('.js-find-timer-centeconds');
     var centeconds = 0;
     XR.timer = setInterval(setTime, 10);
 
@@ -393,19 +470,31 @@ XR.startMillTimer = function() {
         secondsEl.innerHTML = pad(parseInt(centeconds / 100 % 60));
         minutesEl.innerHTML = pad(parseInt(centeconds / 100 / 60));
     }
-
-    function pad(val) {
-        var valString = val + "";
-        if (valString.length < 2) {
-            return "0" + valString;
-        } else {
-            return valString;
-        }
-    }
 }
 
 XR.stopTimer = function() {
     clearInterval(XR.timer);
+}
+
+XR.resetTimer = function() {
+    XR.stopTimer();
+    var minutesEl = XR.timerUI.querySelector('.js-find-timer-minutes');
+    var secondsEl = XR.timerUI.querySelector('.js-find-timer-seconds');
+    var centecondsEl = XR.timerUI.querySelector('.js-find-timer-centeconds');
+
+    centecondsEl.innerHTML = pad(0);
+    secondsEl.innerHTML = pad(0);
+    minutesEl.innerHTML = pad(0);
+    
+}
+
+function pad(val) {
+    var valString = val + "";
+    if (valString.length < 2) {
+        return "0" + valString;
+    } else {
+        return valString;
+    }
 }
 
 function onSelect(e) {

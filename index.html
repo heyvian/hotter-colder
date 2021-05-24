@@ -47,19 +47,27 @@
     </div>
     <div class="c-ar-overlay js-ar-overlay">
         <button class="c-ar-overlay__close-btn js-close-webxr" aria-label="Close XR session"></button>
-        <div class="c-ar-overlay__hide-ui">
-            <button class="c-ar-overlay__hide-object-btn o-btn o-btn--primary js-hide-obj" aria-label="Place the object in your environment">Hide it here</button>
-            <p class="c-ar-overlay__instructions c-ar-overlay__instructions--hide">Find a place to hide the doughnut!</p>
-        </div>
-        <div class="c-ar-overlay__find-ui">
-            <time class="c-ar-overlay__timer">
-                <span class="c-ar-overlay__timer__time js-timer-minutes">00</span>:
-                <span class="c-ar-overlay__timer__timer js-timer-seconds">00</span>:
-                <span class="c-ar-overlay__timer__timer js-timer-centeconds">00</span>
+        <div class="c-ar-overlay__bottom-info">
+            <time class="c-ar-overlay__timer js-find-timer">
+                <span class="c-ar-overlay__timer__time js-find-timer-minutes">00</span>:
+                <span class="c-ar-overlay__timer__timer js-find-timer-seconds">00</span>:
+                <span class="c-ar-overlay__timer__timer js-find-timer-centeconds">00</span>
             </time>
-            <button class="c-ar-overlay__find-object-btn o-btn o-btn--primary js-find-obj" aria-label="Start the timer and find the object">Start Finding!</button>
-            <div class="c-ar-overlay__find-instructions-wrapper">
-                <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Find the doughnut and boop it with your phone!</p>
+            <div class="c-ar-overlay__ui-wrapper c-ar-overlay__ui-wrapper--hide js-hide-ui">
+                <button class="c-ar-overlay__hide-object-btn o-btn o-btn--primary js-hide-obj" aria-label="Place the object in your environment">Hide it here</button>
+                <p class="c-ar-overlay__instructions c-ar-overlay__instructions--hide">Find a place to hide the doughnut!</p>
+            </div>
+            <div class="c-ar-overlay__ui-wrapper c-ar-overlay__ui-wrapper--find js-find-ui">
+                <button class="c-ar-overlay__find-object-btn o-btn o-btn--primary js-find-obj" aria-label="Start the timer and find the object">Start Finding!</button>
+                <div class="c-ar-overlay__find-instructions-wrapper js-find-instructions">
+                    <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Find the doughnut and boop it with your phone!</p>
+                </div>
+            </div>
+            <div class="c-ar-overlay__ui-wrapper c-ar-overlay__ui-wrapper--found js-found-ui">
+                <button class="c-ar-overlay__play-again-btn o-btn o-btn--primary js-play-again" aria-label="Reset and play again">Play again!</button>
+                <div class="c-ar-overlay__found-instructions-wrapper">
+                    <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Congratulations! You found the doughnut.</p>
+                </div>
             </div>
         </div>
     </div>

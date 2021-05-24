@@ -113,7 +113,12 @@ button {
 
 .c-ar-overlay {
     display: none;
-    // box-shadow: inset 0 0 0 5vw var(--app-green);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // background-color: #000;
 }
 
 .c-ar-overlay.is-warmer {
@@ -130,34 +135,7 @@ button {
     display: block;
 }
 
-.c-ar-overlay__hide-ui,
-.c-ar-overlay__find-ui {
-    // display: none;
-    visibility: hidden;
-    position: absolute;
-    bottom: 8vw;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    // transition: transform 100ms ease-out;
-}
-
-.is-hiding .c-ar-overlay__hide-ui {
-    display: flex;
-    // transform: translateX(-50%) scale(1);
-    visibility: visible;
-}
-
-.is-finding .c-ar-overlay__find-ui {
-    display: flex;
-    // transform: translateX(-50%) scale(1);
-    visibility: visible;
-}
-
+// Close Button
 .c-ar-overlay__close-btn {
     position: absolute;
     top: 3vw;
@@ -194,35 +172,34 @@ button {
 
 }
 
-.c-ar-overlay__hide-object-btn {
-    opacity: 0;
-    transition: transform 300ms ease-out, opacity 300ms ease-out;
+// Info area
+.c-ar-overlay__bottom-info {
+    position: absolute;
+    left: 0;
+    bottom: 10vw;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.is-hiding .c-ar-overlay__hide-object-btn {
+.c-ar-overlay__ui-wrapper {
     display: flex;
-    transform: scale(1);
-    opacity: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.c-ar-overlay__hide-object-btn {
 }
 
 .c-ar-overlay__find-object-btn {
-    transform: scale(0.8);
-    opacity: 0;
-    transition: transform 200ms 100ms ease-out, opacity 200ms 100ms ease-out;
-}
-
-.is-finding .c-ar-overlay__find-object-btn {
-    display: flex;
-    transform: scale(1);
-    opacity: 1;
-}
-
-.c-ar-overlay__find-instructions-wrapper {
-    transform: scale(0.8);
 }
 
 .c-ar-overlay__timer {
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     font-family: sauna-mono, sans-serif;
@@ -234,19 +211,7 @@ button {
     will-change: contents;
 }
 
-.started-finding .c-ar-overlay__timer {
-    display: flex;
-}
-
-.started-finding .c-ar-overlay__find-object-btn {
-    display: none;
-}
-
-.is-finding .c-ar-overlay__find-instructions-wrapper {
-    transform: none;
-    opacity: 1;
-    transition: transform 200ms ease-out, opacity 200ms ease-out;
-    // transition-delay: 600ms, 600ms;
+.c-ar-overlay__find-instructions-wrapper {
 }
 
 .c-ar-overlay__instructions {
@@ -293,10 +258,6 @@ button {
         left: calc(100% - 0.75rem);
         border-right: $border-width / 2 solid transparent;
     }
-}
-
-.started-finding .c-ar-overlay__instructions {
-    margin-top: 0.75rem;
 }
 
 .is-visible {
