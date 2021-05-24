@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import {
+    MeshSurfaceSampler
+} from "three/examples/jsm/math/MeshSurfaceSampler.js";
 
 function WebXR() { };
 
@@ -105,29 +108,32 @@ XR.doughnutGenerator = function() {
     
     const icingObjGeo = new THREE.TorusGeometry( 0.063, 0.041, 16, 100 );
     icingObjGeo.scale(1, 1, 0.7);
+    icingObjGeo.translate(0, 0, 0.012);
     const icingObjMat = new THREE.MeshToonMaterial({
         color: '#07b0f2'
     });
     var icingObj = new THREE.Mesh( icingObjGeo, icingObjMat );
-    icingObj.position.set(0, 0, 0.012);
 
     this.sprinkles = new THREE.Group();
+    var sprinkColours = ['#81C928', '#27cdf2', '#bf3f34', '#f58000', '#f2b705', '#F21F49', '#DC1FF2'];
 
-    for ( let i = 0; i < 180; i ++ ) {
-        var sprinkleGeo = new THREE.SphereGeometry( 0.003, 12, 12 );
+    const sampler = new MeshSurfaceSampler( icingObj )
+	.setWeightAttribute( 'color' )
+	.build();
+    const _position = new THREE.Vector3();
+
+    for ( let i = 0; i < 380; i ++ ) {
+        var sprinkleGeo = new THREE.SphereGeometry( 0.0025, 12, 12 );
         var sprinkleMat =  new THREE.MeshToonMaterial({
-            color: '#DC1FF2'
+            color: sprinkColours[Math.floor(Math.random() * sprinkColours.length)]
         });
         var sprinkle = new THREE.Mesh(sprinkleGeo, sprinkleMat);
 
-        while (sprinkle.position.distanceTo(icingObj.position) > 0.1 || sprinkle.position.distanceTo(icingObj.position) < 0.05 || sprinkle.position.z < -1) {
+        sampler.sample( _position );
 
-            sprinkle.position.x = -0.2 + Math.random() * 0.4;
-            sprinkle.position.y = -0.2 + Math.random() * 0.4;
-            sprinkle.position.z = THREE.MathUtils.randFloat(0.03, 0.04);
-
-            this.sprinkles.add( sprinkle );
-        }
+        sprinkle.position.set(_position.x, _position.y, _position.z);
+        
+        this.sprinkles.add( sprinkle );
     
     }
 

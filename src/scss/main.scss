@@ -65,7 +65,7 @@ button {
 .o-btn--primary {
     --btn-color: var(--app-green);
     --text-color: #fff;
-    text-shadow: -0.05em 0.05em 0 #333;
+    text-shadow: -0.06em 0.06em 0 #333;
 }
 
 // Site specific
@@ -88,7 +88,7 @@ button {
     display: block;
     margin-top: -0.1em;
     font-size: 1.5em;
-    color: var(--app-orange);
+    color: #F21F49;
 }
 
 .c-intro-content__blurb {
@@ -227,7 +227,7 @@ button {
     justify-content: center;
     font-family: sauna-mono, sans-serif;
     font-weight: 900;
-    font-size: calc(100vw / 8);
+    font-size: calc(100vw / 7);
     line-height: 1;
     color: #fff;
     text-shadow: 5px 5px 0 rgba(0,0,0,0.75);
