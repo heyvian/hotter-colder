@@ -169,6 +169,17 @@ button {
     opacity: 1;
 }
 
+.c-ar-overlay__find-instructions-wrapper {
+    transform: scale(0.8);
+}
+
+.is-finding .c-ar-overlay__find-instructions-wrapper {
+    transform: none;
+    opacity: 1;
+    transition: transform 200ms ease-out, opacity 200ms ease-out;
+    // transition-delay: 600ms, 600ms;
+}
+
 .c-ar-overlay__instructions {
     position: relative;
     display: flex;
@@ -176,7 +187,6 @@ button {
     justify-content: center;
     width: calc(100% - 26vw);
     height: calc(2rem + 1.3rem * 1.2 * 2);
-    transform: scale(0.8);
     margin: 5vw auto 0;
     padding: 1rem;
     font-family: 'Nerko One', cursive;
@@ -186,8 +196,6 @@ button {
     border-radius: 0.25rem;
     background-color: rgba(255,255,255,1);
     box-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
-    opacity: 0;
-    z-index: 0;
 
     $border-width: (2rem + 1.3rem * 1.2 * 2) / 2;
 
@@ -215,18 +223,6 @@ button {
         left: calc(100% - 0.75rem);
         border-right: $border-width / 2 solid transparent;
     }
-}
-
-.is-hiding .c-ar-overlay__instructions--hide {
-    transform: scale(1);
-    opacity: 1;
-    transition: transform 200ms ease-out, opacity 200ms ease-out;
-}
-.is-finding .c-ar-overlay__instructions--find {
-    transform: scale(1);
-    opacity: 1;
-    transition: transform 200ms ease-out, opacity 200ms ease-out;
-    // transition-delay: 600ms, 600ms;
 }
 
 .c-ar-overlay__timer {
