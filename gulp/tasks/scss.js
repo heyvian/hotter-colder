@@ -10,20 +10,17 @@ module.exports = function(dirs, helpers){
     const rename = require('gulp-rename');
     const sass = require('gulp-sass');
     const sourcemaps = require('gulp-sourcemaps');
-    const stylelint = require('gulp-stylelint');
     const watch = require('gulp-watch');
 
     const tasks = {
 
         default: function(){
             this.compile();
-            this.lint();
         },
 
         watch: function(){
             this.default();
             watch(helpers.getMergedInputs(['scss', 'scss-compile']), this.compile.bind(this));
-            watch(helpers.getMergedInputs(['scss', 'scss-lint']), this.lint.bind(this));
         },
 
         compile: function(){
@@ -72,27 +69,6 @@ module.exports = function(dirs, helpers){
             //     message: 'All files compiled',
             //     onLast: true
             // }));
-        },
-
-        lint: function(){
-            const paths = helpers.getPaths(['scss', 'scss-lint']);
-            const processes = mergeStream();
-
-            paths.forEach(path => {
-                let process = gulp.src(path.input)
-                    // lint
-                    .pipe(stylelint({
-                        reporters: [
-                            { formatter: 'string', console: true }
-                        ]
-                    }))
-                    // show warning notification
-                    // .on('error', error => helpers.notifyError(error, 'warning', 'There are lint errors that require your attention'));
-
-                processes.add(process);
-            });
-            // ignore errors on merged stream (should be handled in individual stream)
-            processes.on('error', error => {});
         }
 
     }

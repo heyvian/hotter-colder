@@ -18,7 +18,7 @@ body {
     --app-orange: #f58000;
     --app-yellow: #f2b705;
     --menu-width: 400px;
-    font-family: 'Roboto', sans-serif;
+    font-family: roboto, sans-serif;
 }
 
 button {
@@ -31,8 +31,11 @@ button {
     --text-color: #fff;
     width: max-content;
     padding: 0.25em 1em;
-    font-family: 'Nerko One', cursive;
-    font-size: 2rem;
+    font-family: sauna-new, serif;
+    font-weight: 900;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     color: var(--text-color);
     background-color: var(--btn-color);
     border-radius: 2.5rem;
@@ -173,6 +176,27 @@ button {
     transform: scale(0.8);
 }
 
+.c-ar-overlay__timer {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: roboto, sans-serif;
+    font-weight: 900;
+    font-size: calc(100vw / 8);
+    line-height: 1;
+    color: #fff;
+    text-shadow: 5px 5px 0 rgba(0,0,0,0.75);
+    will-change: contents;
+}
+
+.started-finding .c-ar-overlay__timer {
+    display: flex;
+}
+
+.started-finding .c-ar-overlay__find-object-btn {
+    display: none;
+}
+
 .is-finding .c-ar-overlay__find-instructions-wrapper {
     transform: none;
     opacity: 1;
@@ -189,8 +213,9 @@ button {
     height: calc(2rem + 1.3rem * 1.2 * 2);
     margin: 5vw auto 0;
     padding: 1rem;
-    font-family: 'Nerko One', cursive;
-    font-size: 1.3rem;
+    font-size: 1.5rem;
+    font-family: sauna-new, sans-serif;
+    font-weight: 700;
     line-height: 1.2;
     text-align: center;
     border-radius: 0.25rem;
@@ -225,21 +250,8 @@ button {
     }
 }
 
-.c-ar-overlay__timer {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(100vw / 6);
-    color: #fff;
-    text-shadow: 3px 3px 5px rgba(0,0,0,0.75);
-}
-
-.started-finding .c-ar-overlay__timer {
-    display: flex;
-}
-
-.started-finding .c-ar-overlay__find-object-btn {
-    display: none;
+.started-finding .c-ar-overlay__instructions {
+    margin-top: 0.75rem;
 }
 
 .is-visible {

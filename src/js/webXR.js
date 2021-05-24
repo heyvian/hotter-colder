@@ -117,7 +117,7 @@ XR.onSessionStarted = async function(session) {
 
     // A 'local' reference space has a native origin that is located
     // near the viewer's position at the time the session was created.
-    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("local-floor").catch(e => {
+    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("viewer").catch(e => {
         console.error(e)
     });
 
@@ -179,13 +179,13 @@ XR.render = function(time, frame) {
         cwd.multiplyScalar(dist);
         cwd.add(XR.camera.position);
         
-        XR.hiddenObj.position.set(cwd.x, cwd.y, cwd.z);
+        XR.hiddenObj.position.set(cwd.x, cwd.y + 0.08, cwd.z);
         XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
 
     } else if (XR.hiddenObj && !XR.isHiding) {
 
-        if(XR.hiddenObj.material.opacity > 0.75) {
-            XR.hiddenObj.material.opacity += -0.01;
+        if(XR.hiddenObj.material.opacity > 0.25) {
+            XR.hiddenObj.material.opacity += -0.005;
         }
 
     }
