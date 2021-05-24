@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
-import { XRHandModelFactory } from 'three/examples/jsm/webxr/XRHandModelFactory.js';
 
 function WebXR() { };
 
@@ -17,11 +15,13 @@ XR.init = function(XRtype) {
     this.renderer;
     this.referenceSpace;
     this.hitTestSource;
+    this.hitTestResults;
     this.session;
     this.currentSession = null;
     this.controller;
     this.previousDistance;
     this.viewerPosition = new THREE.Vector3();
+    this.objectTappable = false;
     this.isHiding = true;
     this.isFinding = false;
     this.startedFinding = false;
@@ -117,7 +117,7 @@ XR.onSessionStarted = async function(session) {
 
     // A 'local' reference space has a native origin that is located
     // near the viewer's position at the time the session was created.
-    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("viewer").catch(e => {
+    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("local-floor").catch(e => {
         console.error(e)
     });
 
@@ -170,8 +170,6 @@ XR.render = function(time, frame) {
 
     XR.camera.getWorldPosition(XR.viewerPosition);
 
-    // console.log(XR.viewerPosition);
-
     if (XR.hiddenObj && XR.isHiding) {
         var dist = 0.5;
         var cwd = new THREE.Vector3();
@@ -183,8 +181,17 @@ XR.render = function(time, frame) {
         
         XR.hiddenObj.position.set(cwd.x, cwd.y, cwd.z);
         XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
+
+    } else if (XR.hiddenObj && !XR.isHiding) {
+
+        if(XR.hiddenObj.material.opacity > 0.75) {
+            XR.hiddenObj.material.opacity += -0.01;
+        }
+
     }
+
     if (XR.hiddenObj && XR.isFinding && XR.startedFinding) {
+        // XR.hitTestResults = frame.getHitTestResults(XR.hitTestSource);
         var distance = XR.viewerPosition.distanceTo(XR.hiddenObj.position);
         var absDist = Math.abs(XR.previousDistance - distance);
         
@@ -200,77 +207,30 @@ XR.render = function(time, frame) {
             } 
 
             if (distance < 0.25) {
-                XR.stopTimer();
+                XR.hiddenObj.opacity = 1;
+                XR.objectTappable = true;
+                // XR.stopTimer();
+            } else {
+                XR.hiddenObj.opacity = 0.75;
+                XR.objectTappable = false;
             }
     
             XR.previousDistance = distance;
         }
         
     }
+
     if (XR.renderer.xr.isPresenting) {
-        const pose = frame.getViewerPose(XR.referenceSpace);
-        if (pose) {
-            // In mobile XR, we only have one view.
-            const view = pose.views[0];
-
-            // if(XR.XRtype == 'ar') {
-            //     // Use the view's transform matrix and projection matrix to configure the THREE.camera.
-            //     XR.camera.matrix.fromArray(view.transform.matrix);
-            //     XR.camera.projectionMatrix.fromArray(view.projectionMatrix);
-            //     XR.camera.updateMatrixWorld(true);
-
-            //     const hitTestResults = frame.getHitTestResults(XR.hitTestSource);
-
-            //     if (hitTestResults.length > 0) {
-                    
-            //     } else {
-
-            //     }
-            // }
-
-            // Render the scene with THREE.WebGLRenderer.
-            XR.renderer.render(XR.scene, XR.camera);
-        }
+        XR.renderer.render(XR.scene, XR.camera);
     }
 }
 
 XR.initControllers = function() {
 
-    console.log(XR.currentSession);
-
     // controllers
     XR.controller1 = XR.renderer.xr.getController( 0 );
     XR.controller1.addEventListener('select', onSelect);
     XR.scene.add( XR.controller1 );
-
-    XR.controller2 = XR.renderer.xr.getController( 1 );
-    XR.scene.add( XR.controller2 );
-
-    const controllerModelFactory = new XRControllerModelFactory();
-    const handModelFactory = new XRHandModelFactory().setPath( "./models/fbx/" );
-
-    // Hand 1
-    XR.controllerGrip1 = XR.renderer.xr.getControllerGrip( 0 );
-    XR.controllerGrip1.add( controllerModelFactory.createControllerModel( XR.controllerGrip1 ) );
-    XR.scene.add( XR.controllerGrip1 );
-
-    XR.hand1 = XR.renderer.xr.getHand( 0 );
-    XR.hand1.addEventListener( 'pinchstart', onPinchStartLeft );
-    XR.hand1.addEventListener( 'pinchend', onPinchEndLeft );
-    XR.hand1.add( handModelFactory.createHandModel( XR.hand1 ) );
-
-    XR.scene.add( XR.hand1 );
-
-    // Hand 2
-    XR.controllerGrip2 = XR.renderer.xr.getControllerGrip( 1 );
-    XR.controllerGrip2.add( controllerModelFactory.createControllerModel( XR.controllerGrip2 ) );
-    XR.scene.add( XR.controllerGrip2 );
-
-    XR.hand2 = XR.renderer.xr.getHand( 1 );
-    XR.hand2.addEventListener( 'pinchstart', onPinchStartRight );
-    XR.hand2.addEventListener( 'pinchend', onPinchEndRight );
-    XR.hand2.add( handModelFactory.createHandModel( XR.hand2 ) );
-    XR.scene.add( XR.hand2 );
 
 }
 
@@ -385,23 +345,7 @@ XR.stopTimer = function() {
 }
 
 function onSelect(e) {
-    console.log('onSelect()');
-}
-
-function onPinchStartLeft( event ) {
-    console.log('onPinchStartLeft()');
-}
-
-function onPinchEndLeft( event ) {
-    console.log('onPinchEndLeft()');
-}
-
-function onPinchStartRight( event ) {
-    console.log('onPinchStartRight()');
-}
-
-function onPinchEndRight( event ) {
-    console.log('onPinchEndRight()');
+    console.log('onSelect()', e);    
 }
 
 export { XR };

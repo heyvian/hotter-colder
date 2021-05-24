@@ -42,7 +42,8 @@
     <div class="c-ar-overlay js-ar-overlay">
         <button class="c-ar-overlay__close-btn js-close-webxr" aria-label="Close XR session"></button>
         <div class="c-ar-overlay__hide-ui">
-            <button class="c-ar-overlay__hide-object-btn js-hide-obj" aria-label="Place the object in your environment">Hide it here</button>
+            <button class="c-ar-overlay__hide-object-btn o-btn o-btn--primary js-hide-obj" aria-label="Place the object in your environment">Hide it here</button>
+            <p class="c-ar-overlay__instructions c-ar-overlay__instructions--hide">Find a place to hide the object!</p>
         </div>
         <div class="c-ar-overlay__find-ui">
             <time class="c-ar-overlay__timer">
@@ -50,7 +51,8 @@
                 <span class="c-ar-overlay__timer__timer js-timer-seconds">00</span>:
                 <span class="c-ar-overlay__timer__timer js-timer-centeconds">00</span>
             </time>
-            <button class="c-ar-overlay__find-object-btn js-find-obj" aria-label="Start the timer and find the object">Find it</button>
+            <button class="c-ar-overlay__find-object-btn o-btn o-btn--primary js-find-obj" aria-label="Start the timer and find the object">Find it</button>
+            <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Find the object and boop it with your phone!</p>
         </div>
     </div>
     <script type="module" src="dist/js/site.js?"></script>

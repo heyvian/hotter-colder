@@ -13,8 +13,9 @@ body {
 body {
     --app-green: #adbf24;
     --app-blue: #07b0f2;
-    --app-light-blue: #27cDf2;
+    --app-light-blue: #27cdf2;
     --app-red: #bf3f34;
+    --app-orange: #f58000;
     --app-yellow: #f2b705;
     --menu-width: 400px;
     font-family: 'Roboto', sans-serif;
@@ -23,6 +24,28 @@ body {
 button {
     background: none;
     border: none;
+}
+
+.o-btn {
+    --btn-color: #000;
+    --text-color: #fff;
+    width: max-content;
+    padding: 0.25em 1em;
+    font-family: 'Nerko One', cursive;
+    font-size: 2rem;
+    color: var(--text-color);
+    background-color: var(--btn-color);
+    border-radius: 2.5rem;
+    transition: transform 50ms ease-out;
+
+    &:active {
+        transform: scale(0.9);
+    }
+} 
+
+.o-btn--primary {
+    --btn-color: var(--app-green);
+    --text-color: #000;
 }
 
 // Site specific
@@ -42,17 +65,17 @@ button {
 
 .c-ar-overlay {
     display: none;
-    box-shadow: inset 0 0 0 5vw var(--app-green);
+    // box-shadow: inset 0 0 0 5vw var(--app-green);
 }
 
 .c-ar-overlay.is-warmer {
-    // box-shadow: inset 0 0 20vw 10vw var(--app-yellow);
-    box-shadow: inset 0 0 0 5vw var(--app-yellow);
+    box-shadow: inset 0 0 20vw 10vw var(--app-orange);
+    // box-shadow: inset 0 0 0 5vw var(--app-orange);
 }
 
 .c-ar-overlay.is-colder {
-    // box-shadow: inset 0 0 20vw 10vw var(--app-blue);
-    box-shadow: inset 0 0 0 5vw var(--app-blue);
+    box-shadow: inset 0 0 20vw 10vw var(--app-blue);
+    // box-shadow: inset 0 0 0 5vw var(--app-blue);
 }
 
 .has-ar .c-ar-overlay {
@@ -61,22 +84,30 @@ button {
 
 .c-ar-overlay__hide-ui,
 .c-ar-overlay__find-ui {
-    display: none;
+    // display: none;
+    visibility: hidden;
     position: absolute;
-    bottom: 5vh;
+    bottom: 8vw;
     left: 50%;
     transform: translateX(-50%);
+    width: 100%;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
+    // transition: transform 100ms ease-out;
 }
 
 .is-hiding .c-ar-overlay__hide-ui {
     display: flex;
+    // transform: translateX(-50%) scale(1);
+    visibility: visible;
 }
 
 .is-finding .c-ar-overlay__find-ui {
-    display: block;
+    display: flex;
+    // transform: translateX(-50%) scale(1);
+    visibility: visible;
 }
 
 .c-ar-overlay__close-btn {
@@ -116,13 +147,86 @@ button {
 }
 
 .c-ar-overlay__hide-object-btn {
-    width: max-content;
-    padding: 0.5em 1em;
+    opacity: 0;
+    transition: transform 300ms ease-out, opacity 300ms ease-out;
+}
+
+.is-hiding .c-ar-overlay__hide-object-btn {
+    display: flex;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.c-ar-overlay__find-object-btn {
+    transform: scale(0.8);
+    opacity: 0;
+    transition: transform 200ms 100ms ease-out, opacity 200ms 100ms ease-out;
+}
+
+.is-finding .c-ar-overlay__find-object-btn {
+    display: flex;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.c-ar-overlay__instructions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 26vw);
+    height: calc(2rem + 1.3rem * 1.2 * 2);
+    transform: scale(0.8);
+    margin: 5vw auto 0;
+    padding: 1rem;
     font-family: 'Nerko One', cursive;
-    font-size: 2rem;
-    color: #fff;
-    background-color: var(--app-green);
-    border-radius: 1rem;
+    font-size: 1.3rem;
+    line-height: 1.2;
+    text-align: center;
+    border-radius: 0.25rem;
+    background-color: rgba(255,255,255,1);
+    box-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+    opacity: 0;
+    z-index: 0;
+
+    $border-width: (2rem + 1.3rem * 1.2 * 2) / 2;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0.5rem;
+        width: 0;
+        height: calc(100% - #{$border-width} * 2);
+        background-color: transparent;
+        border-width: $border-width ($border-width / 2);
+        border-style: solid;
+        border-color: #ddd;
+        border-radius: inherit;
+        z-index: -1;
+    }
+
+    &::before {
+        right: calc(100% - 0.75rem);
+        border-left: $border-width / 2 solid transparent;
+    }
+
+    &::after {
+        left: calc(100% - 0.75rem);
+        border-right: $border-width / 2 solid transparent;
+    }
+}
+
+.is-hiding .c-ar-overlay__instructions--hide {
+    transform: scale(1);
+    opacity: 1;
+    transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+.is-finding .c-ar-overlay__instructions--find {
+    transform: scale(1);
+    opacity: 1;
+    transition: transform 200ms ease-out, opacity 200ms ease-out;
+    // transition-delay: 600ms, 600ms;
 }
 
 .c-ar-overlay__timer {
@@ -136,15 +240,6 @@ button {
 
 .started-finding .c-ar-overlay__timer {
     display: flex;
-}
-
-.c-ar-overlay__find-object-btn {
-    padding: 0.5em 1em;
-    font-family: 'Nerko One', cursive;
-    font-size: 2rem;
-    color: #fff;
-    background-color: var(--app-green);
-    border-radius: 1rem;    
 }
 
 .started-finding .c-ar-overlay__find-object-btn {
