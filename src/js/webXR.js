@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import {
     MeshSurfaceSampler
-} from "three/examples/jsm/math/MeshSurfaceSampler.js";
+} from "three/examples/jsm/math/MeshSurfaceSampler";
+import { AmmoPhysics } from 'three/examples/jsm/physics/AmmoPhysics';
 import gsap from "gsap";
 
 function WebXR() { };
 
 let XR = new WebXR();
 
-XR.init = function(XRtype) {
+XR.init = async function(XRtype) {
     console.log('|||| Init WebXR');
     this.XRtype = XRtype;
     this.container = document.querySelector('.js-xr-container');
@@ -26,6 +27,7 @@ XR.init = function(XRtype) {
     // ThreeJS
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, window.innerHeight / window.innerWidth, 1, 200);
+    this.physics = await AmmoPhysics();
     // Positioning
     this.viewerPosition = new THREE.Vector3();
     this.previousDistance;
@@ -98,6 +100,7 @@ XR.doughnutGenerator = function() {
         transparent: true
     });
     var doughnutObj = new THREE.Mesh( doughnutObjGeo, doughnutObjMat );
+    doughnutObj.receiveShadow = true;
     
     // Create icing (second smaller doughnut slightly shifted)
     const icingObjGeo = new THREE.TorusGeometry( 0.063, 0.041, 16, 100 );
@@ -108,10 +111,11 @@ XR.doughnutGenerator = function() {
         transparent: true
     });
     var icingObj = new THREE.Mesh( icingObjGeo, icingObjMat );
+    icingObj.receiveShadow = true;
 
     // Create sprinkles
     this.sprinkles = new THREE.Group();
-    var sprinkColours = ['#81C928', '#27cdf2', '#bf3f34', '#f58000', '#f2b705', '#F21F49', '#DC1FF2'];
+    this.sprinkleColours = ['#81C928', '#27cdf2', '#bf3f34', '#f58000', '#f2b705', '#F21F49', '#DC1FF2'];
 
     const sampler = new MeshSurfaceSampler( icingObj )
 	.setWeightAttribute( 'color' )
@@ -121,7 +125,7 @@ XR.doughnutGenerator = function() {
     for ( let i = 0; i < 380; i ++ ) {
         var sprinkleGeo = new THREE.SphereGeometry( 0.0025, 12, 12 );
         var sprinkleMat =  new THREE.MeshToonMaterial({
-            color: sprinkColours[Math.floor(Math.random() * sprinkColours.length)],
+            color: this.sprinkleColours[Math.floor(Math.random() * this.sprinkleColours.length)],
             transparent: true
         });
         var sprinkle = new THREE.Mesh(sprinkleGeo, sprinkleMat);
@@ -134,13 +138,46 @@ XR.doughnutGenerator = function() {
     
     }
 
-    this.hiddenObj = new THREE.Group();
-    this.hiddenObj.add( doughnutObj );
-    this.hiddenObj.add( icingObj );
-    this.hiddenObj.add( this.sprinkles );
-    this.hiddenObjOpacity = 1;
+    // this.hiddenObj = new THREE.Group();
+    // this.hiddenObj.add( doughnutObj );
+    // this.hiddenObj.add( icingObj );
+    // this.hiddenObj.add( this.sprinkles );
+    // this.hiddenObjOpacity = 1;
+
+    this.hiddenObj = icingObj;
 
     this.scene.add( this.hiddenObj );
+
+    this.physics.addMesh( icingObj );
+
+    XR.celebrationSprinkles();
+}
+
+XR.celebrationSprinkles = function() {
+    // Spheres
+
+    const matrix = new THREE.Matrix4();
+    const color = new THREE.Color();
+
+    this.position = new THREE.Vector3();
+
+    const material = new THREE.MeshToonMaterial();
+    const geometrySphere = new THREE.SphereGeometry( 0.0025, 12, 12 );
+    this.spheres = new THREE.InstancedMesh( geometrySphere, material, 100 );
+    this.spheres.instanceMatrix.setUsage( THREE.DynamicDrawUsage ); // will be updated every frame
+    this.spheres.castShadow = true;
+    this.spheres.receiveShadow = true;
+    this.scene.add( this.spheres );
+
+    for ( let i = 0; i < this.spheres.count; i ++ ) {
+
+        matrix.setPosition( Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5 );
+        this.spheres.setMatrixAt( i, matrix );
+        this.spheres.setColorAt( i, color.setHex( 0xffffff * Math.random() ) );
+
+    }
+
+    this.physics.addMesh( this.spheres, 0.5 );
 }
 
 XR.lighting = function() {
@@ -223,6 +260,13 @@ XR.render = function(time, frame) {
     // console.log(renderer);
 
     XR.camera.getWorldPosition(XR.viewerPosition);
+
+    // Animate sprinkles around hidden object area
+    let index = Math.floor( Math.random() * XR.spheres.count );
+    XR.position.set( XR.hiddenObj.position.x - 0.1 + Math.random() * 0.2, XR.hiddenObj.position.y + 0.1,  XR.hiddenObj.position.z - 0.1 + Math.random() * 0.2 );
+
+    // XR.camera.getWorldPosition( XR.position);
+    XR.physics.setMeshPosition( XR.spheres, XR.position, index );
 
     if( XR.hiddenObj ) {
         // If hiding or found stick doughnut to front of viewer else leave in last recorded place
