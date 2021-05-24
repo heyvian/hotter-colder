@@ -35,20 +35,17 @@ XR.init = function(XRtype) {
     this.findBtn = document.querySelector('.js-find-obj');
     this.timer;
 
-    const hiddenObjGeo = new THREE.SphereGeometry( 0.1, 16, 16 );
-    const hiddenObjMat = new THREE.MeshPhongMaterial({
-        color: '#27CDF2',
-        shininess: 100
-    });
-    // hiddenObjMat.emissiveIntensity = 1;
-    this.hiddenObj = new THREE.Mesh( hiddenObjGeo, hiddenObjMat );
-    this.hiddenObj.position.set(0, 1, -1);
-    this.scene.add( this.hiddenObj );
+    this.doughnutGenerator();
 
-    var viewerLight = new THREE.PointLight( '#fff', 0.5, 1, 2 );
-    this.scene.add(viewerLight);
-    this.hiddenObj.add(viewerLight);
-    viewerLight.position.set(0.25, 0.25, 0.25);
+    var objectLightMain = new THREE.PointLight( '#fff', 10, 1, 2 );
+    this.scene.add(objectLightMain);
+    this.hiddenObj.add(objectLightMain);
+    objectLightMain.position.set(0.5, -0.5, 0.5);
+
+    var objectLightFill = new THREE.PointLight( '#fff', 5, 2, 2 );
+    this.scene.add(objectLightFill);
+    this.hiddenObj.add(objectLightFill);
+    objectLightFill.position.set(-1, 1, 1);
 
     var ambientLight = new THREE.AmbientLight( '#fff', 0.45 )
     this.scene.add( ambientLight );
@@ -96,6 +93,51 @@ XR.init = function(XRtype) {
     this.findBtn.addEventListener('click', e => {
         XR.findObject();
     });
+}
+
+XR.doughnutGenerator = function() {
+
+    const doughnutObjGeo = new THREE.TorusGeometry( 0.065, 0.04, 16, 100 );
+    const doughnutObjMat = new THREE.MeshToonMaterial({
+        color: '#D99D4F'
+    });
+    var doughnutObj = new THREE.Mesh( doughnutObjGeo, doughnutObjMat );
+    
+    const icingObjGeo = new THREE.TorusGeometry( 0.063, 0.041, 16, 100 );
+    icingObjGeo.scale(1, 1, 0.7);
+    const icingObjMat = new THREE.MeshToonMaterial({
+        color: '#07b0f2'
+    });
+    var icingObj = new THREE.Mesh( icingObjGeo, icingObjMat );
+    icingObj.position.set(0, 0, 0.012);
+
+    this.sprinkles = new THREE.Group();
+
+    for ( let i = 0; i < 180; i ++ ) {
+        var sprinkleGeo = new THREE.SphereGeometry( 0.003, 12, 12 );
+        var sprinkleMat =  new THREE.MeshToonMaterial({
+            color: '#DC1FF2'
+        });
+        var sprinkle = new THREE.Mesh(sprinkleGeo, sprinkleMat);
+
+        while (sprinkle.position.distanceTo(icingObj.position) > 0.1 || sprinkle.position.distanceTo(icingObj.position) < 0.05 || sprinkle.position.z < -1) {
+
+            sprinkle.position.x = -0.2 + Math.random() * 0.4;
+            sprinkle.position.y = -0.2 + Math.random() * 0.4;
+            sprinkle.position.z = THREE.MathUtils.randFloat(0.03, 0.04);
+
+            this.sprinkles.add( sprinkle );
+        }
+    
+    }
+
+    this.hiddenObj = new THREE.Group();
+    this.hiddenObj.add( doughnutObj );
+    this.hiddenObj.add( icingObj );
+    this.hiddenObj.add( this.sprinkles );
+    this.hiddenObjOpacity = 1;
+
+    this.scene.add( this.hiddenObj );
 }
 
 XR.startXRSession = function() {
@@ -159,6 +201,13 @@ XR.onSessionEnded = async function() {
     document.querySelector('body').classList.remove('has-xr', 'has-ar', 'has-vr', 'is-hiding', 'is-finding', 'started-finding');
     XR.overlay.classList.remove('is-warmer', 'is-colder');
 
+    XR.hiddenObj.traverse( function( node ) {
+        if( node.material ) {
+            node.material.opacity = 1;
+            XR.hiddenObjOpacity = 1;
+        }
+    });
+
 }
 
 XR.animate = function() {
@@ -181,11 +230,20 @@ XR.render = function(time, frame) {
         
         XR.hiddenObj.position.set(cwd.x, cwd.y + 0.08, cwd.z);
         XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
+        XR.hiddenObj.rotateX(THREE.Math.degToRad( -48 ));
+        XR.hiddenObj.rotateY(THREE.Math.degToRad( -10 ));
 
     } else if (XR.hiddenObj && !XR.isHiding) {
 
-        if(XR.hiddenObj.material.opacity > 0.25) {
-            XR.hiddenObj.material.opacity += -0.005;
+        if(XR.hiddenObjOpacity > 0.25) {
+            XR.hiddenObj.traverse( function( node ) {
+                if( node.material ) {
+                    node.material.opacity += -0.005;
+                    XR.hiddenObjOpacity += -0.005;
+                    // node.material.transparent = true;
+                }
+            });
+            // XR.hiddenObj.material.opacity += -0.005;
         }
 
     }
