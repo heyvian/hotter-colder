@@ -17,16 +17,16 @@
     <title>Hotter Colder WebXR | Heyvian</title>
     <link rel="preconnect" href="https://use.typekit.net">
     <link rel="stylesheet" href="https://use.typekit.net/cbn8grr.css">
-    <link href="dist/css/main.min.css?" rel="stylesheet" type="text/css" media="screen" />
+    <link href="dist/css/main.min.css?v=1.0.0" rel="stylesheet" type="text/css" media="screen" />
 
     <!-- Favicons -->
     <link rel="apple-touch-icon" sizes="180x180" href="dist/images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="dist/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="dist/images/favicon-16x16.png">
     <link rel="manifest" href="dist/images/site.webmanifest">
-    <link rel="mask-icon" href="dist/images/safari-pinned-tab.svg" color="#090909">
-    <meta name="msapplication-TileColor" content="#090909">
-    <meta name="theme-color" content="#090909">
+    <link rel="mask-icon" href="dist/images/safari-pinned-tab.svg" color="#ffffff">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="theme-color" content="#07b0f2">
 
     <meta property="og:title" content="Hotter Colder WebXR | Heyvian">
     <meta property="og:site_name" content="Hotter Colder WebXR | Heyvian">
@@ -44,6 +44,7 @@
             <h2 class="o-title o-title--secondary">Multiplayer WebXR Experiment</h2>
             <p class="c-intro-content__unsupported js-not-supported-blurb">It looks like your device is not supported. You'll need a modern Android phone and Chrome or a modern iPhone with <a href="https://apps.apple.com/us/app/webxr-viewer/id1295998056" target="_blank" rel="nofollow">WebXR Viewer by Mozilla</a>.</p>
             <p>One person uses this device to hide the doughnut and then the next player uses this device to try and find it with 'warmer' and 'colder' cues.</p>
+            <p>This is very experimental and it's reliability leaves much to be desired.</p>
         </div>
         <button class="c-start-xr-btn o-btn o-btn--primary js-start-webxr">Start XR Session</button>
     </div>
@@ -63,19 +64,15 @@
             </div>
             <div class="c-ar-overlay__ui-wrapper c-ar-overlay__ui-wrapper--find js-find-ui">
                 <button class="c-ar-overlay__find-object-btn o-btn o-btn--primary js-find-obj" aria-label="Start the timer and find the object">Start Finding!</button>
-                <div class="c-ar-overlay__find-instructions-wrapper js-find-instructions">
-                    <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Find the doughnut and boop it with your phone!</p>
-                </div>
+                <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Find the doughnut and boop it with your phone!</p>
             </div>
             <div class="c-ar-overlay__ui-wrapper c-ar-overlay__ui-wrapper--found js-found-ui">
                 <button class="c-ar-overlay__play-again-btn o-btn o-btn--primary js-play-again" aria-label="Reset and play again">Play again!</button>
-                <div class="c-ar-overlay__found-instructions-wrapper">
-                    <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Congratulations! You found the doughnut.</p>
-                </div>
+                <p class="c-ar-overlay__instructions c-ar-overlay__instructions--find">Congratulations! You found the doughnut.</p>
             </div>
         </div>
     </div>
-    <script type="module" src="dist/js/site.js?"></script>
+    <script type="module" src="dist/js/site.js?v=1.0.0"></script>
 </body>
 
 </html>

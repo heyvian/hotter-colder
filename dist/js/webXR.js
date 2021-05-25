@@ -46131,7 +46131,7 @@ XR.onSessionStarted = async function(session) {
 
     // A 'local' reference space has a native origin that is located
     // near the viewer's position at the time the session was created.
-    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("viewer").catch(e => {
+    XR.referenceSpace = await XR.currentSession.requestReferenceSpace("local-floor").catch(e => {
         console.error(e);
     });
 
@@ -46226,7 +46226,7 @@ XR.render = function(time, frame) {
             }
             
             // Fade in if in range
-            if (distance > 0.5) {
+            if (distance > 0.6) {
 
                 XR.fadeOutHiddenObj(0.2);    
 

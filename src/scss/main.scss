@@ -231,11 +231,6 @@ a {
     text-align: center;
 }
 
-.c-ar-overlay__hide-object-btn {
-}
-
-.c-ar-overlay__find-object-btn {
-}
 .c-ar-overlay__play-again-btn {
     margin-top: 1rem;
 }
@@ -253,15 +248,12 @@ a {
     will-change: contents;
 }
 
-.c-ar-overlay__find-instructions-wrapper {
-}
-
 .c-ar-overlay__instructions {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: calc(100% - 26vw);
+    width: calc(100% - 6rem);
     height: calc(2rem + 1.3rem * 1.2 * 2);
     margin: 5vw auto 0;
     padding: 1rem;
