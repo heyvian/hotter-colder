@@ -29,17 +29,29 @@ button {
     border: none;
 }
 
+a {
+    color: #000;
+    text-decoration-color: var(--app-red);
+}
+
 .o-title {
     font-family: sauna-new, sans-serif;
-    font-size: 7rem;
-    font-weight: 900;
     line-height: 0.8;
     text-align: center;
-    text-shadow: -0.04em 0.04em 0 #333;
 }
 
 .o-title--primary {
+    font-size: 7rem;
+    font-weight: 900;
     color: var(--app-blue);
+    text-shadow: -0.04em 0.04em 0 #333;
+}
+
+.o-title--secondary {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #000;
 }
 
 .o-btn {
@@ -96,6 +108,14 @@ button {
     margin-top: 2vw;
     font-family: sauna-new, serif;
     font-size: 1.6rem;
+
+    p {
+        margin: 1.5rem 0 0 0;
+    }
+}
+
+.c-intro-content__unsupported {
+    display: none;
 }
 
 .c-xr-container {

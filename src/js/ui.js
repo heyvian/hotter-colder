@@ -33,6 +33,8 @@ siteUI.immersiveSupported = function() {
 siteUI.immersiveNotSupported = function() {
     console.log('%c|||| ' + this.XRtype.toUpperCase() + ' is not supported', 'color: #990000');
     this.startXRbtn.textContent = this.XRnotSupportedBtnText;
+
+    document.querySelector('.js-not-supported-blurb').classList.add('is-visible');
 }
 
 export { siteUI };
