@@ -41,6 +41,8 @@ XR.init = function(XRtype) {
     this.body = document.querySelector('body');
     this.overlay = document.querySelector('.js-ar-overlay');
     this.closeXRbtn = document.querySelector('.js-close-webxr');
+    this.feedbackWarmer = document.querySelector('.js-feedback-warmer');
+    this.feedbackColder = document.querySelector('.js-feedback-colder');
     this.hideUI = document.querySelector('.js-hide-ui');
     this.findUI = document.querySelector('.js-find-ui');
     this.foundUI = document.querySelector('.js-found-ui');
@@ -95,9 +97,10 @@ XR.doughnutGenerator = function() {
     const doughnutObjGeo = new THREE.TorusGeometry( 0.065, 0.04, 16, 100 );
     const doughnutObjMat = new THREE.MeshToonMaterial({
         color: '#D99D4F',
-        transparent: true
+        transparent: true,
     });
     var doughnutObj = new THREE.Mesh( doughnutObjGeo, doughnutObjMat );
+    doughnutObj.name = 'Doughnut';
     
     // Create icing (second smaller doughnut slightly shifted)
     const icingObjGeo = new THREE.TorusGeometry( 0.063, 0.041, 16, 100 );
@@ -108,17 +111,19 @@ XR.doughnutGenerator = function() {
         transparent: true
     });
     var icingObj = new THREE.Mesh( icingObjGeo, icingObjMat );
+    icingObj.name = 'Icing';
 
     // Create sprinkles
     this.sprinkles = new THREE.Group();
     var sprinkColours = ['#81C928', '#27cdf2', '#bf3f34', '#f58000', '#f2b705', '#F21F49', '#DC1FF2'];
+    this.sprinkles.name = 'Sprinkles';
 
     const sampler = new MeshSurfaceSampler( icingObj )
 	.setWeightAttribute( 'color' )
 	.build();
     const _position = new THREE.Vector3();
 
-    for ( let i = 0; i < 380; i ++ ) {
+    for ( let i = 0; i < 680; i ++ ) {
         var sprinkleGeo = new THREE.SphereGeometry( 0.0025, 12, 12 );
         var sprinkleMat =  new THREE.MeshToonMaterial({
             color: sprinkColours[Math.floor(Math.random() * sprinkColours.length)],
@@ -144,17 +149,17 @@ XR.doughnutGenerator = function() {
 }
 
 XR.lighting = function() {
-    var objectLightMain = new THREE.PointLight( '#fff', 10, 1, 2 );
-    this.scene.add(objectLightMain);
-    this.hiddenObj.add(objectLightMain);
-    objectLightMain.position.set(0.5, -0.5, 0.5);
+    this.objectLightMain = new THREE.PointLight( '#fff', 1, 10, 2 );
+    this.scene.add(this.objectLightMain);
+    // this.camera.add(this.objectLightMain);
+    // this.objectLightMain.position.set(1, 1, 1);
 
-    var objectLightFill = new THREE.PointLight( '#fff', 5, 2, 2 );
-    this.scene.add(objectLightFill);
-    this.hiddenObj.add(objectLightFill);
-    objectLightFill.position.set(-1, 1, 1);
+    this.objectLightFill = new THREE.PointLight( '#fff', 3, 2, 2 );
+    // this.scene.add(this.objectLightFill);
+    // this.hiddenObj.add(objectLightFill);
+    // this.objectLightFill.position.set(-1, 1, 1);
 
-    var ambientLight = new THREE.AmbientLight( '#fff', 0.45 )
+    var ambientLight = new THREE.AmbientLight( '#fff', 0.5 )
     this.scene.add( ambientLight );
 }
 
@@ -218,7 +223,7 @@ XR.onSessionEnded = async function() {
 XR.animate = function() {
     XR.renderer.setAnimationLoop(XR.render);
 }
-
+var deg = 0;
 XR.render = function(time, frame) {
     // console.log(renderer);
 
@@ -235,12 +240,21 @@ XR.render = function(time, frame) {
             cwd.multiplyScalar(dist);
             cwd.add(XR.camera.position);
             
-            XR.hiddenObj.position.set(cwd.x, cwd.y + 0.08, cwd.z);
+            XR.hiddenObj.position.set(cwd.x, cwd.y + 0.1, cwd.z);
             XR.hiddenObj.setRotationFromQuaternion(XR.camera.quaternion);
-            XR.hiddenObj.rotateX(THREE.Math.degToRad( -48 ));
-            XR.hiddenObj.rotateY(THREE.Math.degToRad( -10 ));
+            XR.hiddenObj.rotateX(THREE.Math.degToRad( -32 ));
+            XR.hiddenObj.rotateY(THREE.Math.degToRad( -10 )); 
+
+            XR.objectLightMain.setRotationFromQuaternion(XR.camera.quaternion);
+            XR.objectLightMain.position.set(cwd.x + 0.5, cwd.y + 0.2, cwd.z + 0.5);
+            XR.objectLightFill.position.set(cwd.x, cwd.y + 0.09, cwd.z);
+
+            if (XR.isFound) {
+                deg += 1;
+                XR.hiddenObj.rotateZ(THREE.Math.degToRad( deg ));
+            }        
     
-        } else if (XR.isReadyFinding && XR.showObject == false) {
+        } else if ( XR.isReadyFinding ) {
     
             XR.fadeOutHiddenObj(0.2);
     
@@ -250,15 +264,13 @@ XR.render = function(time, frame) {
             var distance = XR.viewerPosition.distanceTo(XR.hiddenObj.position);
             var absDist = Math.abs(XR.previousDistance - distance);
             
-            if(absDist > 0.01) {
+            if(absDist > 0.01 && XR.isFound == false) {
                 if(distance > XR.previousDistance) {
                     // console.log('%c colder', 'color: #00f');
-                    XR.overlay.classList.remove('is-warmer');
-                    XR.overlay.classList.add('is-colder');
+                    XR.setColder();
                 } else if (distance < XR.previousDistance) {
                     // console.log('%c warmer', 'color: #f00');
-                    XR.overlay.classList.remove('is-colder');
-                    XR.overlay.classList.add('is-warmer');
+                    XR.setWarmer();
                 } 
     
                 XR.previousDistance = distance;
@@ -316,6 +328,16 @@ XR.fadeInHiddenObj = function(rate) {
     }
 }
 
+XR.goldHiddenObj = function(rate) {
+    console.log( XR.hiddenObj);
+    XR.hiddenObj.traverse( function( node ) {
+        console.log(node);
+        if( node.material ) {
+            node.material.setValues({color: '#f4cd04'});
+        }
+    });
+}
+
 XR.initControllers = function() {
 
     // controllers
@@ -332,6 +354,8 @@ XR.setupUI = function() {
     gsap.set(XR.timerUI, {'display' : 'none', 'opacity': 0});
     gsap.set(XR.findUI, {'display' : 'none', 'opacity': 0});
     gsap.set(XR.foundUI, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.feedbackWarmer, {'display' : 'none', 'opacity': 0});
+    gsap.set(XR.feedbackColder, {'display' : 'none', 'opacity': 0});
 
     XR.initButtons();
 }
@@ -394,21 +418,30 @@ XR.setFound = function() {
     XR.isStartedFinding = false;
     XR.body.classList.add('is-found');
     XR.body.classList.remove('is-started-finding');
+    // Warmer / Colder reset
+    gsap.to([XR.feedbackColder, XR.feedbackWarmer], { 'display' : 'none', 'opacity': 0, yPercent: -100, duration: 0.5 });
     XR.overlay.classList.remove('is-warmer', 'is-colder');
+    XR.goldHiddenObj();
 }
 
 XR.setWarmer = function() {
+    gsap.killTweensOf([XR.feedbackColder, XR.feedbackWarmer]);
+    gsap.set(XR.feedbackColder, { 'display' : 'none', 'opacity': 0, yPercent: -100 });
+    gsap.to(XR.feedbackWarmer, { 'display' : 'block', 'opacity': 1, yPercent: 0, ease: "back.out(2)", duration: 0.5 });
     XR.isWarmer = true;
     XR.isColder = false;
-    XR.body.classList.add('is-warmer');
-    XR.body.classList.remove('is-colder');
+    XR.overlay.classList.add('is-warmer');
+    XR.overlay.classList.remove('is-colder');
 }
 
 XR.setColder = function() {
+    gsap.killTweensOf([XR.feedbackColder, XR.feedbackWarmer]);
+    gsap.set(XR.feedbackWarmer, { 'display' : 'none', 'opacity': 0, yPercent: -100 });
+    gsap.to(XR.feedbackColder, { 'display' : 'block', 'opacity': 1, yPercent: 0, ease: "back.out(2)", duration: 0.5 });
     XR.isColder = true;
     XR.isWarmer = false;
-    XR.body.classList.add('is-colder');
-    XR.body.classList.remove('is-warmer');
+    XR.overlay.classList.add('is-colder');
+    XR.overlay.classList.remove('is-warmer');
 }
 
 XR.hideObject = function() {
@@ -436,6 +469,13 @@ XR.reset = function() {
     XR.overlay.classList.remove('is-warmer', 'is-colder');
 
     XR.fadeInHiddenObj(1);
+    
+    while(XR.scene.children.length > 0){ 
+        XR.scene.remove(XR.scene.children[0]); 
+    }
+
+    XR.doughnutGenerator();
+    XR.lighting();
 }
 
 XR.playAgain = function() {

@@ -131,6 +131,10 @@ button {
     // box-shadow: inset 0 0 0 5vw var(--app-blue);
 }
 
+.is-found .c-ar-overlay {
+    // box-shadow: inset 0 0 20vw 10vw var(--app-green);
+}
+
 .has-ar .c-ar-overlay {
     display: block;
 }
@@ -172,6 +176,21 @@ button {
 
 }
 
+// Feedback text
+.c-ar-overlay__feedback-text {
+    position: fixed;
+    top: 3vw;
+    left: 3vw;
+    margin: 0;
+    font-family: sauna-new, sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 0.8;
+    text-align: center;
+    text-shadow: -0.04em 0.04em 0 #333;
+    color: #fff;
+}
+
 // Info area
 .c-ar-overlay__bottom-info {
     position: absolute;
@@ -196,6 +215,9 @@ button {
 }
 
 .c-ar-overlay__find-object-btn {
+}
+.c-ar-overlay__play-again-btn {
+    margin-top: 1rem;
 }
 
 .c-ar-overlay__timer {
